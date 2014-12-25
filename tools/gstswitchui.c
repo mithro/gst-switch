@@ -57,14 +57,7 @@ static GOptionEntry entries[] = {
 };
 
 static const gchar *gst_switch_ui_css =
-    ".compose {\n"
-    "  border-style: solid;\n"
-    "  border-width: 5px;\n"
-    "  border-radius: 5px;\n"
-    "  border-color: rgba(0,0,0,0.2);\n"
-    "  padding: 0px;\n"
-    "}\n"
-    ".preview_frame {\n"
+    ".preview {\n"
     "  border-style: solid;\n"
     "  border-width: 5px;\n"
     "  border-radius: 5px;\n"
@@ -77,7 +70,12 @@ static const gchar *gst_switch_ui_css =
     ".active_audio_frame {\n"
     "  border-color: rgba(225,25,55,0.75);\n"
     "}\n"
-    ".active_video_frame {\n" "  border-color: rgba(225,25,55,0.75);\n" "}\n";
+    ".active_video_a_frame {\n"
+    "  border-color: rgba(225,25,55,0.75);\n"
+    "}\n";
+    ".active_video_b_frame {\n"
+    "  border-color: rgba(225,25,55,0.75);\n"
+    "}\n";
 
 /**
  * @brief Parse command line arguments.
@@ -954,9 +952,11 @@ gst_switch_ui_select_preview (GstSwitchUI * ui, guint key)
     if (view)
       switch (key) {
         case GDK_KEY_Up:
+        case GDK_KEY_Left:
           selected = g_list_last (view);
           break;
         case GDK_KEY_Down:
+        case GDK_KEY_Right:
           selected = view;
           break;
       }
@@ -971,9 +971,11 @@ gst_switch_ui_select_preview (GstSwitchUI * ui, guint key)
       previous = GTK_WIDGET (selected->data);
       switch (key) {
         case GDK_KEY_Up:
+        case GDK_KEY_Left:
           selected = g_list_previous (selected);
           break;
         case GDK_KEY_Down:
+        case GDK_KEY_Right:
           selected = g_list_next (selected);
           break;
       }
@@ -1179,66 +1181,78 @@ static gboolean
 gst_switch_ui_key_event (GtkWidget * w, GdkEvent * event, GstSwitchUI * ui)
 {
   switch (event->type) {
-    case GDK_KEY_PRESS:
+//    case GDK_KEY_PRESS:
     case GDK_KEY_RELEASE:
     {
       GdkEventKey *ke = (GdkEventKey *) event;
-      gboolean mod = ke->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK);
       switch (ke->keyval) {
         case GDK_KEY_Up:
         case GDK_KEY_Down:
-          if (mod)
-            goto adjust_pip;
-          gst_switch_ui_select_preview (ui, ke->keyval);
-          break;
         case GDK_KEY_Left:
         case GDK_KEY_Right:
-          if (mod) {
-            gboolean resize;
-          adjust_pip:
-            resize = (ke->state & GDK_SHIFT_MASK) ? TRUE : FALSE;
-            gst_switch_ui_adjust_pip (ui, resize, ke->keyval);
-            return TRUE;
+        {
+          gboolean pip_move = ke->state & GDK_SHIFT_MASK & GDK_CONTROL_MASK;
+          gboolean pip_resize = ke->state & GDK_SHIFT_MASK;
+
+          if (pip_move || pip_resize) {
+            gst_switch_ui_adjust_pip (ui, pip_resize, ke->keyval);
+          } else {
+            gst_switch_ui_select_preview (ui, ke->keyval);
           }
-          break;
+          return TRUE;
+        }
+
         case GDK_KEY_A:
         case GDK_KEY_a:
         case GDK_KEY_B:
         case GDK_KEY_b:
           gst_switch_ui_switch (ui, ke->keyval);
-          break;
+          return TRUE;
+
+        case GDK_KEY_1:
+        case GDK_KEY_2:
+        case GDK_KEY_3:
+        case GDK_KEY_4:
+        case GDK_KEY_5:
+        case GDK_KEY_6:
+        case GDK_KEY_7:
+        case GDK_KEY_8:
+        case GDK_KEY_9:
+        case GDK_KEY_0:
+          return TRUE;
+
         case GDK_KEY_R:
         case GDK_KEY_r:
           gst_switch_ui_new_record (ui);
-          break;
+          return TRUE;
 
         // Keys to change the compose mode
         // ---------------------------------------------------------------
         // None
         case GDK_KEY_Escape:
           gst_switch_ui_next_compose (ui, COMPOSE_MODE_NONE);
-          break;
+          return TRUE;
 
         // Picture-in-Picture
         case GDK_KEY_F1:
         case GDK_KEY_P:
         case GDK_KEY_p:
           gst_switch_ui_next_compose (ui, COMPOSE_MODE_PIP);
-          break;
+          return TRUE;
 
         // Side-by-side (preview)
         case GDK_KEY_F2:
         case GDK_KEY_D:
         case GDK_KEY_d:
           gst_switch_ui_next_compose (ui, COMPOSE_MODE_DUAL_PREVIEW);
-          break;
+          return TRUE;
 
         // Side-by-side (equal)
         case GDK_KEY_F3:
         case GDK_KEY_S:
         case GDK_KEY_s:
           gst_switch_ui_next_compose (ui, COMPOSE_MODE_DUAL_EQUAL);
-          break;
+          return TRUE;
 
         // Cycle through the modes
         case GDK_KEY_Tab:
@@ -1248,11 +1262,11 @@ gst_switch_ui_key_event (GtkWidget * w, GdkEvent * event, GstSwitchUI * ui)
             ui->tabtime = ke->time;
             gst_switch_ui_next_compose_mode (ui);
           }
+          return TRUE;
         }
-          break;
       }
     }
-      break;
+
     default:
       break;
   }
