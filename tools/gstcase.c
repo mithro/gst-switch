@@ -276,7 +276,32 @@ gst_case_set_property (GstCase * cas, guint property_id,
  * @memberof GstCase
  * @return A GString instance representing the pipeline string.
  *
- * Retreiving the GstCase pipeline string, it's invoked by GstWorker.
+ * Retrieving the GstCase pipeline string, it's invoked by GstWorker.
+ *
+ *  --case(input_xxx)--
+ *   TCP server (source) -> gdpdepay -> input_xxx
+ * 
+ *  --case(X)--
+ *   input_xxx -\
+ *              +-> branch_xxx
+ *              +-> composite_(a|b|audio)
+ * 
+ *  --case(branch_xxx)--
+ *   branch_xxx -\
+ *               +-> preview video -> gdppay -> TCP server (sink)
+ *               +-> preview audio -> gdppay -> TCP server (sink)
+ * 
+ *  --composite+scale--
+ *   X -> composite_a -> composite_a_scaled -\
+ *                                            +-> composite_out
+ *                                            +-> composite_video
+ *   X -> composite_b -> composite_b_scaled -/
+ * 
+ *  --recorder--
+ *   composite_video -> video output (mjpg) -\                /-> TCP server (sink)
+ *                                            >- mux -> tee -+
+ *   composite_audio -> audio output (aac)  -/                \-> File output
+ *
  */
 static GString *
 gst_case_get_pipeline_string (GstCase * cas)
@@ -289,18 +314,22 @@ gst_case_get_pipeline_string (GstCase * cas)
       gst_switch_server_get_video_caps_str ();
 
   switch (cas->type) {
+    // Audio input from the tcp socket
     case GST_CASE_INPUT_AUDIO:
       g_string_append_printf (desc,
           "giostreamsrc name=source ! gdpdepay ! %s ! interaudiosink name=sink channel=input_%d",
           caps, cas->sink_port);
       break;
 
+    // Video input from the tcp socket
     case GST_CASE_INPUT_VIDEO:
       g_string_append_printf (desc,
           "giostreamsrc name=source ! gdpdepay ! %s ! intervideosink name=sink channel=input_%d",
           caps, cas->sink_port);
       break;
 
+    // FIXME: What use is this?
+    // Goes from input_XXXX -> branch_XXXX - why does that exist?
     case GST_CASE_PREVIEW:
       if (is_audiostream) {
         g_string_append_printf (desc,
@@ -313,6 +342,8 @@ gst_case_get_pipeline_string (GstCase * cas)
       }
       break;
 
+    // Select an audio input channel and feed it into the "audio compositor"
+    // (which doesn't actually do anything).
     case GST_CASE_COMPOSITE_AUDIO:
       g_string_append_printf (desc,
           "interaudiosrc name=source channel=input_%d ! audioparse raw-format=s16le rate=48000 ! tee name=s "
@@ -321,6 +352,7 @@ gst_case_get_pipeline_string (GstCase * cas)
           cas->sink_port, cas->sink_port);
       break;
 
+    // Select an input video channel (A or B) and feed the video compositor.
     case GST_CASE_COMPOSITE_VIDEO_A:
     case GST_CASE_COMPOSITE_VIDEO_B:
     {
@@ -346,6 +378,7 @@ gst_case_get_pipeline_string (GstCase * cas)
           cas->sink_port, caps, cas->sink_port);
       break;
 
+    // Send a preview of output to a server.
     case GST_CASE_BRANCH_PREVIEW:
       g_string_append_printf (desc,
           "intervideosrc name=source channel=branch_%d ! %s ! gdppay ! tcpserversink name=sink port=%d",

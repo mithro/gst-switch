@@ -45,17 +45,38 @@ typedef struct _GstCaseClass GstCaseClass;
  */
 typedef enum
 {
+/**
+  # Branch
+              /-> preview
+  input     -+
+              \-> composite
+
+  # Recording Flow
+  video composite -> encode (mjpg) -\               /-> gdpay -> TCP server (sink)
+                                     >- mux (mkv) -+
+  audio switch ---------------------/               \----------> File output
+
+  # Preview
+  preview video -> gdppay -> TCP server (sink)
+  preview audio -> gdppay -> TCP server (sink)
+  */
+
   GST_CASE_UNKNOWN,           /*!< unknown case */
+
+  //
   GST_CASE_COMPOSITE_VIDEO_A, /*!< special case for composite channel A */
   GST_CASE_COMPOSITE_VIDEO_B, /*!< special case for composite channel B */
   GST_CASE_COMPOSITE_AUDIO,   /*!< special case for composite channel audio */
   GST_CASE_PREVIEW,           /*!< special case for previews */
+
   GST_CASE_INPUT_AUDIO,       /*!< Audio input from TCP socket */
   GST_CASE_INPUT_VIDEO,       /*!< Video input from TCP socket */
+
   GST_CASE_BRANCH_VIDEO_A,    /*!< special case for branching channel A to output */
   GST_CASE_BRANCH_VIDEO_B,    /*!< special case for branching channel B to output */
   GST_CASE_BRANCH_AUDIO,      /*!< special case for branching active audio to output */
   GST_CASE_BRANCH_PREVIEW,    /*!< special case for branching preview to output */
+
   GST_CASE__LAST_TYPE = GST_CASE_BRANCH_PREVIEW
 } GstCaseType;
 
