@@ -44,23 +44,23 @@
 #include <gst/base/gstbasesrc.h>
 #include "gstintersubsrc.h"
 
-GST_DEBUG_CATEGORY_STATIC (gst_inter_sub_src_debug_category);
-#define GST_CAT_DEFAULT gst_inter_sub_src_debug_category
+GST_DEBUG_CATEGORY_STATIC (gsw_inter_sub_src_debug_category);
+#define GST_CAT_DEFAULT gsw_inter_sub_src_debug_category
 
 /* prototypes */
-static void gst_inter_sub_src_set_property (GObject * object,
+static void gsw_inter_sub_src_set_property (GObject * object,
     guint property_id, const GValue * value, GParamSpec * pspec);
-static void gst_inter_sub_src_get_property (GObject * object,
+static void gsw_inter_sub_src_get_property (GObject * object,
     guint property_id, GValue * value, GParamSpec * pspec);
-static void gst_inter_sub_src_finalize (GObject * object);
+static void gsw_inter_sub_src_finalize (GObject * object);
 
-static gboolean gst_inter_sub_src_start (GstBaseSrc * src);
-static gboolean gst_inter_sub_src_stop (GstBaseSrc * src);
+static gboolean gsw_inter_sub_src_start (GstBaseSrc * src);
+static gboolean gsw_inter_sub_src_stop (GstBaseSrc * src);
 static void
-gst_inter_sub_src_get_times (GstBaseSrc * src, GstBuffer * buffer,
+gsw_inter_sub_src_get_times (GstBaseSrc * src, GstBuffer * buffer,
     GstClockTime * start, GstClockTime * end);
 static GstFlowReturn
-gst_inter_sub_src_create (GstBaseSrc * src, guint64 offset, guint size,
+gsw_inter_sub_src_create (GstBaseSrc * src, guint64 offset, guint size,
     GstBuffer ** buf);
 
 enum
@@ -70,7 +70,7 @@ enum
 };
 
 /* pad templates */
-static GstStaticPadTemplate gst_inter_sub_src_src_template =
+static GstStaticPadTemplate gsw_inter_sub_src_src_template =
 GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
@@ -78,21 +78,21 @@ GST_STATIC_PAD_TEMPLATE ("src",
     );
 
 /* class initialization */
-#define parent_class gst_inter_sub_src_parent_class
-G_DEFINE_TYPE (GstInterSubSrc, gst_inter_sub_src, GST_TYPE_BASE_SRC);
+#define parent_class gsw_inter_sub_src_parent_class
+G_DEFINE_TYPE (GswInterSubSrc, gsw_inter_sub_src, GST_TYPE_BASE_SRC);
 
 static void
-gst_inter_sub_src_class_init (GstInterSubSrcClass * klass)
+gsw_inter_sub_src_class_init (GswInterSubSrcClass * klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GstElementClass *element_class = GST_ELEMENT_CLASS (klass);
   GstBaseSrcClass *base_src_class = GST_BASE_SRC_CLASS (klass);
 
-  GST_DEBUG_CATEGORY_INIT (gst_inter_sub_src_debug_category, "intersubsrc", 0,
+  GST_DEBUG_CATEGORY_INIT (gsw_inter_sub_src_debug_category, "intersubsrc", 0,
       "debug category for intersubsrc element");
 
   gst_element_class_add_pad_template (element_class,
-      gst_static_pad_template_get (&gst_inter_sub_src_src_template));
+      gst_static_pad_template_get (&gsw_inter_sub_src_src_template));
 
   gst_element_class_set_static_metadata (element_class,
       "Internal subtitle source",
@@ -100,13 +100,13 @@ gst_inter_sub_src_class_init (GstInterSubSrcClass * klass)
       "Virtual subtitle source for internal process communication",
       "David Schleef <ds@schleef.org>");
 
-  gobject_class->set_property = gst_inter_sub_src_set_property;
-  gobject_class->get_property = gst_inter_sub_src_get_property;
-  gobject_class->finalize = gst_inter_sub_src_finalize;
-  base_src_class->start = GST_DEBUG_FUNCPTR (gst_inter_sub_src_start);
-  base_src_class->stop = GST_DEBUG_FUNCPTR (gst_inter_sub_src_stop);
-  base_src_class->get_times = GST_DEBUG_FUNCPTR (gst_inter_sub_src_get_times);
-  base_src_class->create = GST_DEBUG_FUNCPTR (gst_inter_sub_src_create);
+  gobject_class->set_property = gsw_inter_sub_src_set_property;
+  gobject_class->get_property = gsw_inter_sub_src_get_property;
+  gobject_class->finalize = gsw_inter_sub_src_finalize;
+  base_src_class->start = GST_DEBUG_FUNCPTR (gsw_inter_sub_src_start);
+  base_src_class->stop = GST_DEBUG_FUNCPTR (gsw_inter_sub_src_stop);
+  base_src_class->get_times = GST_DEBUG_FUNCPTR (gsw_inter_sub_src_get_times);
+  base_src_class->create = GST_DEBUG_FUNCPTR (gsw_inter_sub_src_create);
 
   g_object_class_install_property (gobject_class, PROP_CHANNEL,
       g_param_spec_string ("channel", "Channel",
@@ -115,7 +115,7 @@ gst_inter_sub_src_class_init (GstInterSubSrcClass * klass)
 }
 
 static void
-gst_inter_sub_src_init (GstInterSubSrc * intersubsrc)
+gsw_inter_sub_src_init (GswInterSubSrc * intersubsrc)
 {
   gst_base_src_set_format (GST_BASE_SRC (intersubsrc), GST_FORMAT_TIME);
   gst_base_src_set_live (GST_BASE_SRC (intersubsrc), TRUE);
@@ -124,10 +124,10 @@ gst_inter_sub_src_init (GstInterSubSrc * intersubsrc)
 }
 
 void
-gst_inter_sub_src_set_property (GObject * object, guint property_id,
+gsw_inter_sub_src_set_property (GObject * object, guint property_id,
     const GValue * value, GParamSpec * pspec)
 {
-  GstInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (object);
+  GswInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (object);
 
   switch (property_id) {
     case PROP_CHANNEL:
@@ -141,10 +141,10 @@ gst_inter_sub_src_set_property (GObject * object, guint property_id,
 }
 
 void
-gst_inter_sub_src_get_property (GObject * object, guint property_id,
+gsw_inter_sub_src_get_property (GObject * object, guint property_id,
     GValue * value, GParamSpec * pspec)
 {
-  GstInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (object);
+  GswInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (object);
 
   switch (property_id) {
     case PROP_CHANNEL:
@@ -157,9 +157,9 @@ gst_inter_sub_src_get_property (GObject * object, guint property_id,
 }
 
 static void
-gst_inter_sub_src_finalize (GObject * object)
+gsw_inter_sub_src_finalize (GObject * object)
 {
-  GstInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (object);
+  GswInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (object);
 
   g_free (intersubsrc->channel);
   intersubsrc->channel = NULL;
@@ -168,32 +168,32 @@ gst_inter_sub_src_finalize (GObject * object)
 }
 
 static gboolean
-gst_inter_sub_src_start (GstBaseSrc * src)
+gsw_inter_sub_src_start (GstBaseSrc * src)
 {
-  GstInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (src);
+  GswInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (src);
 
   GST_DEBUG_OBJECT (intersubsrc, "start");
 
-  intersubsrc->surface = gst_inter_surface_get (intersubsrc->channel);
+  intersubsrc->surface = gsw_inter_surface_get (intersubsrc->channel);
 
   return TRUE;
 }
 
 static gboolean
-gst_inter_sub_src_stop (GstBaseSrc * src)
+gsw_inter_sub_src_stop (GstBaseSrc * src)
 {
-  GstInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (src);
+  GswInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (src);
 
   GST_DEBUG_OBJECT (intersubsrc, "stop");
 
-  gst_inter_surface_unref (intersubsrc->surface);
+  gsw_inter_surface_unref (intersubsrc->surface);
   intersubsrc->surface = NULL;
 
   return TRUE;
 }
 
 static void
-gst_inter_sub_src_get_times (GstBaseSrc * src, GstBuffer * buffer,
+gsw_inter_sub_src_get_times (GstBaseSrc * src, GstBuffer * buffer,
     GstClockTime * start, GstClockTime * end)
 {
   GST_DEBUG_OBJECT (src, "get_times");
@@ -218,10 +218,10 @@ gst_inter_sub_src_get_times (GstBaseSrc * src, GstBuffer * buffer,
 }
 
 static GstFlowReturn
-gst_inter_sub_src_create (GstBaseSrc * src, guint64 offset, guint size,
+gsw_inter_sub_src_create (GstBaseSrc * src, guint64 offset, guint size,
     GstBuffer ** buf)
 {
-  GstInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (src);
+  GswInterSubSrc *intersubsrc = GST_INTER_SUB_SRC (src);
   GstBuffer *buffer;
 
   GST_DEBUG_OBJECT (intersubsrc, "create");

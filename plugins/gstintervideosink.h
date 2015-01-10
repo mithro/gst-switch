@@ -25,31 +25,31 @@
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_INTER_VIDEO_SINK   (gst_inter_video_sink_get_type())
-#define GST_INTER_VIDEO_SINK(obj)   (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_INTER_VIDEO_SINK,GstInterVideoSink))
-#define GST_INTER_VIDEO_SINK_CLASS(klass)   (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_INTER_VIDEO_SINK,GstInterVideoSinkClass))
-#define GST_IS_INTER_VIDEO_SINK(obj)   (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_INTER_VIDEO_SINK))
-#define GST_IS_INTER_VIDEO_SINK_CLASS(obj)   (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_INTER_VIDEO_SINK))
+#define GSW_TYPE_INTER_VIDEO_SINK   (gsw_inter_video_sink_get_type())
+#define GST_INTER_VIDEO_SINK(obj)   (G_TYPE_CHECK_INSTANCE_CAST((obj),GSW_TYPE_INTER_VIDEO_SINK,GswInterVideoSink))
+#define GST_INTER_VIDEO_SINK_CLASS(klass)   (G_TYPE_CHECK_CLASS_CAST((klass),GSW_TYPE_INTER_VIDEO_SINK,GswInterVideoSinkClass))
+#define GST_IS_INTER_VIDEO_SINK(obj)   (G_TYPE_CHECK_INSTANCE_TYPE((obj),GSW_TYPE_INTER_VIDEO_SINK))
+#define GST_IS_INTER_VIDEO_SINK_CLASS(obj)   (G_TYPE_CHECK_CLASS_TYPE((klass),GSW_TYPE_INTER_VIDEO_SINK))
 
-typedef struct _GstInterVideoSink GstInterVideoSink;
-typedef struct _GstInterVideoSinkClass GstInterVideoSinkClass;
+typedef struct _GswInterVideoSink GswInterVideoSink;
+typedef struct _GswInterVideoSinkClass GswInterVideoSinkClass;
 
-struct _GstInterVideoSink
+struct _GswInterVideoSink
 {
   GstBaseSink base_intervideosink;
 
-  GstInterSurface *surface;
+  GswInterSurface *surface;
   char *channel;
 
   GstVideoInfo info;
 };
 
-struct _GstInterVideoSinkClass
+struct _GswInterVideoSinkClass
 {
   GstBaseSinkClass base_intervideosink_class;
 };
 
-GType gst_inter_video_sink_get_type (void);
+GType gsw_inter_video_sink_get_type (void);
 
 G_END_DECLS
 

@@ -43,22 +43,22 @@
 #include <gst/base/gstbasesink.h>
 #include "gstintersubsink.h"
 
-GST_DEBUG_CATEGORY_STATIC (gst_inter_sub_sink_debug_category);
-#define GST_CAT_DEFAULT gst_inter_sub_sink_debug_category
+GST_DEBUG_CATEGORY_STATIC (gsw_inter_sub_sink_debug_category);
+#define GST_CAT_DEFAULT gsw_inter_sub_sink_debug_category
 
 /* prototypes */
-static void gst_inter_sub_sink_set_property (GObject * object,
+static void gsw_inter_sub_sink_set_property (GObject * object,
     guint property_id, const GValue * value, GParamSpec * pspec);
-static void gst_inter_sub_sink_get_property (GObject * object,
+static void gsw_inter_sub_sink_get_property (GObject * object,
     guint property_id, GValue * value, GParamSpec * pspec);
-static void gst_inter_sub_sink_finalize (GObject * object);
+static void gsw_inter_sub_sink_finalize (GObject * object);
 
-static void gst_inter_sub_sink_get_times (GstBaseSink * sink,
+static void gsw_inter_sub_sink_get_times (GstBaseSink * sink,
     GstBuffer * buffer, GstClockTime * start, GstClockTime * end);
-static gboolean gst_inter_sub_sink_start (GstBaseSink * sink);
-static gboolean gst_inter_sub_sink_stop (GstBaseSink * sink);
+static gboolean gsw_inter_sub_sink_start (GstBaseSink * sink);
+static gboolean gsw_inter_sub_sink_stop (GstBaseSink * sink);
 static GstFlowReturn
-gst_inter_sub_sink_render (GstBaseSink * sink, GstBuffer * buffer);
+gsw_inter_sub_sink_render (GstBaseSink * sink, GstBuffer * buffer);
 
 enum
 {
@@ -67,7 +67,7 @@ enum
 };
 
 /* pad templates */
-static GstStaticPadTemplate gst_inter_sub_sink_sink_template =
+static GstStaticPadTemplate gsw_inter_sub_sink_sink_template =
 GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
@@ -76,21 +76,21 @@ GST_STATIC_PAD_TEMPLATE ("sink",
 
 
 /* class initialization */
-#define parent_class gst_inter_sub_sink_parent_class
-G_DEFINE_TYPE (GstInterSubSink, gst_inter_sub_sink, GST_TYPE_BASE_SINK);
+#define parent_class gsw_inter_sub_sink_parent_class
+G_DEFINE_TYPE (GswInterSubSink, gsw_inter_sub_sink, GST_TYPE_BASE_SINK);
 
 static void
-gst_inter_sub_sink_class_init (GstInterSubSinkClass * klass)
+gsw_inter_sub_sink_class_init (GswInterSubSinkClass * klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GstBaseSinkClass *base_sink_class = GST_BASE_SINK_CLASS (klass);
   GstElementClass *element_class = GST_ELEMENT_CLASS (klass);
 
-  GST_DEBUG_CATEGORY_INIT (gst_inter_sub_sink_debug_category, "intersubsink", 0,
+  GST_DEBUG_CATEGORY_INIT (gsw_inter_sub_sink_debug_category, "intersubsink", 0,
       "debug category for intersubsink element");
 
   gst_element_class_add_pad_template (element_class,
-      gst_static_pad_template_get (&gst_inter_sub_sink_sink_template));
+      gst_static_pad_template_get (&gsw_inter_sub_sink_sink_template));
 
   gst_element_class_set_static_metadata (element_class,
       "Internal subtitle sink",
@@ -98,13 +98,13 @@ gst_inter_sub_sink_class_init (GstInterSubSinkClass * klass)
       "Virtual subtitle sink for internal process communication",
       "David Schleef <ds@schleef.org>");
 
-  gobject_class->set_property = gst_inter_sub_sink_set_property;
-  gobject_class->get_property = gst_inter_sub_sink_get_property;
-  gobject_class->finalize = gst_inter_sub_sink_finalize;
-  base_sink_class->get_times = GST_DEBUG_FUNCPTR (gst_inter_sub_sink_get_times);
-  base_sink_class->start = GST_DEBUG_FUNCPTR (gst_inter_sub_sink_start);
-  base_sink_class->stop = GST_DEBUG_FUNCPTR (gst_inter_sub_sink_stop);
-  base_sink_class->render = GST_DEBUG_FUNCPTR (gst_inter_sub_sink_render);
+  gobject_class->set_property = gsw_inter_sub_sink_set_property;
+  gobject_class->get_property = gsw_inter_sub_sink_get_property;
+  gobject_class->finalize = gsw_inter_sub_sink_finalize;
+  base_sink_class->get_times = GST_DEBUG_FUNCPTR (gsw_inter_sub_sink_get_times);
+  base_sink_class->start = GST_DEBUG_FUNCPTR (gsw_inter_sub_sink_start);
+  base_sink_class->stop = GST_DEBUG_FUNCPTR (gsw_inter_sub_sink_stop);
+  base_sink_class->render = GST_DEBUG_FUNCPTR (gsw_inter_sub_sink_render);
 
   g_object_class_install_property (gobject_class, PROP_CHANNEL,
       g_param_spec_string ("channel", "Channel",
@@ -113,7 +113,7 @@ gst_inter_sub_sink_class_init (GstInterSubSinkClass * klass)
 }
 
 static void
-gst_inter_sub_sink_init (GstInterSubSink * intersubsink)
+gsw_inter_sub_sink_init (GswInterSubSink * intersubsink)
 {
   intersubsink->channel = g_strdup ("default");
 
@@ -122,10 +122,10 @@ gst_inter_sub_sink_init (GstInterSubSink * intersubsink)
 }
 
 void
-gst_inter_sub_sink_set_property (GObject * object, guint property_id,
+gsw_inter_sub_sink_set_property (GObject * object, guint property_id,
     const GValue * value, GParamSpec * pspec)
 {
-  GstInterSubSink *intersubsink = GST_INTER_SUB_SINK (object);
+  GswInterSubSink *intersubsink = GST_INTER_SUB_SINK (object);
 
   switch (property_id) {
     case PROP_CHANNEL:
@@ -139,10 +139,10 @@ gst_inter_sub_sink_set_property (GObject * object, guint property_id,
 }
 
 void
-gst_inter_sub_sink_get_property (GObject * object, guint property_id,
+gsw_inter_sub_sink_get_property (GObject * object, guint property_id,
     GValue * value, GParamSpec * pspec)
 {
-  GstInterSubSink *intersubsink = GST_INTER_SUB_SINK (object);
+  GswInterSubSink *intersubsink = GST_INTER_SUB_SINK (object);
 
   switch (property_id) {
     case PROP_CHANNEL:
@@ -155,9 +155,9 @@ gst_inter_sub_sink_get_property (GObject * object, guint property_id,
 }
 
 static void
-gst_inter_sub_sink_finalize (GObject * object)
+gsw_inter_sub_sink_finalize (GObject * object)
 {
-  GstInterSubSink *intersubsink = GST_INTER_SUB_SINK (object);
+  GswInterSubSink *intersubsink = GST_INTER_SUB_SINK (object);
 
   g_free (intersubsink->channel);
   intersubsink->channel = NULL;
@@ -166,10 +166,10 @@ gst_inter_sub_sink_finalize (GObject * object)
 }
 
 static void
-gst_inter_sub_sink_get_times (GstBaseSink * sink, GstBuffer * buffer,
+gsw_inter_sub_sink_get_times (GstBaseSink * sink, GstBuffer * buffer,
     GstClockTime * start, GstClockTime * end)
 {
-  GstInterSubSink *intersubsink = GST_INTER_SUB_SINK (sink);
+  GswInterSubSink *intersubsink = GST_INTER_SUB_SINK (sink);
 
   if (GST_BUFFER_TIMESTAMP_IS_VALID (buffer)) {
     *start = GST_BUFFER_TIMESTAMP (buffer);
@@ -186,19 +186,19 @@ gst_inter_sub_sink_get_times (GstBaseSink * sink, GstBuffer * buffer,
 }
 
 static gboolean
-gst_inter_sub_sink_start (GstBaseSink * sink)
+gsw_inter_sub_sink_start (GstBaseSink * sink)
 {
-  GstInterSubSink *intersubsink = GST_INTER_SUB_SINK (sink);
+  GswInterSubSink *intersubsink = GST_INTER_SUB_SINK (sink);
 
-  intersubsink->surface = gst_inter_surface_get (intersubsink->channel);
+  intersubsink->surface = gsw_inter_surface_get (intersubsink->channel);
 
   return TRUE;
 }
 
 static gboolean
-gst_inter_sub_sink_stop (GstBaseSink * sink)
+gsw_inter_sub_sink_stop (GstBaseSink * sink)
 {
-  GstInterSubSink *intersubsink = GST_INTER_SUB_SINK (sink);
+  GswInterSubSink *intersubsink = GST_INTER_SUB_SINK (sink);
 
   g_mutex_lock (&intersubsink->surface->mutex);
   if (intersubsink->surface->sub_buffer) {
@@ -207,16 +207,16 @@ gst_inter_sub_sink_stop (GstBaseSink * sink)
   intersubsink->surface->sub_buffer = NULL;
   g_mutex_unlock (&intersubsink->surface->mutex);
 
-  gst_inter_surface_unref (intersubsink->surface);
+  gsw_inter_surface_unref (intersubsink->surface);
   intersubsink->surface = NULL;
 
   return TRUE;
 }
 
 static GstFlowReturn
-gst_inter_sub_sink_render (GstBaseSink * sink, GstBuffer * buffer)
+gsw_inter_sub_sink_render (GstBaseSink * sink, GstBuffer * buffer)
 {
-  GstInterSubSink *intersubsink = GST_INTER_SUB_SINK (sink);
+  GswInterSubSink *intersubsink = GST_INTER_SUB_SINK (sink);
 
   g_mutex_lock (&intersubsink->surface->mutex);
   if (intersubsink->surface->sub_buffer) {

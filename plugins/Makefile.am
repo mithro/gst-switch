@@ -1,4 +1,4 @@
-plugin_LTLIBRARIES = libgstswitch.la libgstassess.la libgstinter.la
+plugin_LTLIBRARIES = libgstswitch.la libgstassess.la libgswinter.la
 
 libgstswitch_la_SOURCES = gstswitchplugin.c \
   gsttcpmixsrc.c gstswitch.c gstconvbin.c
@@ -16,7 +16,7 @@ libgstassess_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
 libgstassess_la_LIBADD = $(GST_BASE_LIBS) $(GST_LIBS) $(GIO_LIBS)
 libgstassess_la_LIBTOOLFLAGS = --tag=disable-static
 
-libgstinter_la_SOURCES = \
+libgswinter_la_SOURCES = \
 	gstinteraudiosink.c \
 	gstinteraudiosrc.c \
 	gstintersubsink.c \
@@ -35,13 +35,13 @@ noinst_HEADERS = \
 	gstintervideosrc.h \
 	gstintersurface.h
 
-libgstinter_la_CFLAGS = \
+libgswinter_la_CFLAGS = \
 	$(GST_PLUGINS_BASE_CFLAGS) \
 	$(GST_BASE_CFLAGS) \
 	$(GST_CFLAGS)
 
-libgstinter_la_LIBADD = \
-	$(GST_PLUGINS_BASE_LIBS) -lgstvideo-@GST_API_VERSION@ -lgstaudio-@GST_API_VERSION@ \
+libgswinter_la_LIBADD = \
+	$(GST_PLUGINS_BASE_LIBS) -lgstvideo-1.0 -lgstaudio-1.0 \
 	$(GST_BASE_LIBS) \
 	$(GST_LIBS) \
 	$(LIBM)

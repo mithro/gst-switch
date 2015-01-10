@@ -1874,7 +1874,6 @@ my_handler (int signum)
   __gcov_flush ();              /* dump coverage data on receiving SIGUSR1 */
 }
 
-
 int
 main (int argc, char *argv[])
 {

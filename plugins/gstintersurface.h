@@ -26,9 +26,9 @@
 
 G_BEGIN_DECLS
 
-typedef struct _GstInterSurface GstInterSurface;
+typedef struct _GswInterSurface GswInterSurface;
 
-struct _GstInterSurface
+struct _GswInterSurface
 {
   GMutex mutex;
   gint ref_count;
@@ -55,8 +55,8 @@ struct _GstInterSurface
 #define DEFAULT_AUDIO_PERIOD_TIME  (25 * GST_MSECOND)
 
 
-GstInterSurface * gst_inter_surface_get (const char *name);
-void gst_inter_surface_unref (GstInterSurface *surface);
+GswInterSurface * gsw_inter_surface_get (const char *name);
+void gsw_inter_surface_unref (GswInterSurface *surface);
 
 
 G_END_DECLS

@@ -26,20 +26,20 @@
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_INTER_VIDEO_SRC   (gst_inter_video_src_get_type())
-#define GST_INTER_VIDEO_SRC(obj)   (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_INTER_VIDEO_SRC,GstInterVideoSrc))
-#define GST_INTER_VIDEO_SRC_CLASS(klass)   (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_INTER_VIDEO_SRC,GstInterVideoSrcClass))
-#define GST_IS_INTER_VIDEO_SRC(obj)   (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_INTER_VIDEO_SRC))
-#define GST_IS_INTER_VIDEO_SRC_CLASS(obj)   (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_INTER_VIDEO_SRC))
+#define GSW_TYPE_INTER_VIDEO_SRC   (gsw_inter_video_src_get_type())
+#define GST_INTER_VIDEO_SRC(obj)   (G_TYPE_CHECK_INSTANCE_CAST((obj),GSW_TYPE_INTER_VIDEO_SRC,GswInterVideoSrc))
+#define GST_INTER_VIDEO_SRC_CLASS(klass)   (G_TYPE_CHECK_CLASS_CAST((klass),GSW_TYPE_INTER_VIDEO_SRC,GswInterVideoSrcClass))
+#define GST_IS_INTER_VIDEO_SRC(obj)   (G_TYPE_CHECK_INSTANCE_TYPE((obj),GSW_TYPE_INTER_VIDEO_SRC))
+#define GST_IS_INTER_VIDEO_SRC_CLASS(obj)   (G_TYPE_CHECK_CLASS_TYPE((klass),GSW_TYPE_INTER_VIDEO_SRC))
 
-typedef struct _GstInterVideoSrc GstInterVideoSrc;
-typedef struct _GstInterVideoSrcClass GstInterVideoSrcClass;
+typedef struct _GswInterVideoSrc GswInterVideoSrc;
+typedef struct _GswInterVideoSrcClass GswInterVideoSrcClass;
 
-struct _GstInterVideoSrc
+struct _GswInterVideoSrc
 {
   GstBaseSrc base_intervideosrc;
 
-  GstInterSurface *surface;
+  GswInterSurface *surface;
 
   char *channel;
 
@@ -49,12 +49,12 @@ struct _GstInterVideoSrc
   GstClockTime timestamp_offset;
 };
 
-struct _GstInterVideoSrcClass
+struct _GswInterVideoSrcClass
 {
   GstBaseSrcClass base_intervideosrc_class;
 };
 
-GType gst_inter_video_src_get_type (void);
+GType gsw_inter_video_src_get_type (void);
 
 G_END_DECLS
 
