@@ -1874,6 +1874,18 @@ my_handler (int signum)
   __gcov_flush ();              /* dump coverage data on receiving SIGUSR1 */
 }
 
+static void
+load_gst_plugins()
+{
+  GstRegistry *r = gst_registry_get();
+
+  /* Try loading from installed plugin path */
+  gst_registry_scan_path (r, GST_SWITCH_PLUGIN_PATH);
+
+  if (gst_registry_find_plugin (r, "gswinter") == NULL)
+    g_critical("Failed to load gswinter plugin. Please set GST_PLUGIN_PATH to locate it");
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -1891,6 +1903,8 @@ main (int argc, char *argv[])
   gint exit_code = 0;
   GstSwitchServer *srv;
   gst_switch_server_parse_args (argc, argv);
+
+  load_gst_plugins();
 
   srv = GST_SWITCH_SERVER (g_object_new (GST_TYPE_SWITCH_SERVER, NULL));
 

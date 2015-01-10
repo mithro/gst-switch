@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+export GST_PLUGIN_PATH=$(pwd)/plugins${GST_PLUGIN_PATH:+:$GST_PLUGIN_PATH}
+
 # FIXME: Rewrite using the Python API so this is reliable.
 
 killall gst-switch-srv || true

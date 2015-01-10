@@ -142,9 +142,9 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([ ], [ ])], [
 
 dnl set the plugindir where plugins should be installed (for plugins/Makefile.am)
 if test "x${prefix}" = "x$HOME"; then
-  plugindir="$HOME/.gstreamer-1.0/plugins"
+  plugindir="$HOME/.local/gst-dvswitch/plugins"
 else
-  plugindir="\$(libdir)/gstreamer-1.0"
+  plugindir="\$(libdir)/gst-dvswitch/plugins"
 fi
 AC_SUBST(plugindir)
 
