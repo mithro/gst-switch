@@ -369,11 +369,11 @@ gst_audio_visual_message (GstAudioVisual * visual, GstMessage * message)
            GST_TIME_ARGS (endtime), channels);
          */
       } else if (list_rms) {
-        INFO ("endtime: %" GST_TIME_FORMAT ", (%s) ",
-            GST_TIME_ARGS (endtime), G_VALUE_TYPE_NAME (list_rms));
+        //INFO ("endtime: %" GST_TIME_FORMAT ", (%s) ",
+        //    GST_TIME_ARGS (endtime), G_VALUE_TYPE_NAME (list_rms));
       } else {
-        INFO ("endtime: %" GST_TIME_FORMAT ", ->NULL<- ",
-            GST_TIME_ARGS (endtime));
+        //INFO ("endtime: %" GST_TIME_FORMAT ", ->NULL<- ",
+        //    GST_TIME_ARGS (endtime));
       }
     }
   }
