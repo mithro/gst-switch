@@ -553,9 +553,7 @@ gst_switch_controller_call_client (GstSwitchController * controller,
   GVariant *value = NULL;
   GError *error = NULL;
 
-  /*
-     INFO ("calling: %s/%s", SWITCH_CONTROLLER_OBJECT_NAME, method_name);
-   */
+  INFO ("calling: %s/%s", SWITCH_CONTROLLER_OBJECT_NAME, method_name);
 
   const char *path = "";
   const char *name = "";

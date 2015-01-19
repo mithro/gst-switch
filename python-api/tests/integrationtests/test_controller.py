@@ -23,233 +23,118 @@ import subprocess
 PATH = '../tools/'
 
 
-class TestEstablishConnection(object):
+class IntegrationTestbase(object):
+    """Base class for integration tests."""
 
-    """Test establish_connection method"""
-    NUM = 1
-    # fails above 3
+    # pylint: disable=attribute-defined-outside-init
+    def setup_method(self, _):
+        """Set up called before every test_XXXX method."""
+        self.serv = None
+        self.sources = None
+        self.controller = None
 
-    def establish_connection(self):
-        """Create Controller object and call establish_connection"""
-        controller = Controller()
-        controller.establish_connection()
-        # print(controller.connection)
-        assert controller.connection is not None
+    def setup_server(self):
+        """Set up a gst-switch server for testing."""
+        assert self.serv is None
+        self.serv = Server(path=PATH, video_format="debug")
+        self.serv.run()
+        self.sources = TestSources(
+            video_port=self.serv.video_port, audio_port=self.serv.audio_port)
 
-    def test_establish(self):
-        """Test for establish_connection"""
-        serv = Server(path=PATH, video_format="debug")
-        try:
-            serv.run()
-            for i in range(self.NUM):
-                print(i)
-                self.establish_connection()
-            serv.terminate(1)
-        finally:
-            if serv.proc:
-                poll = serv.proc.poll()
-                print(self.__class__)
+    def check_port_open(self, port):
+        """Check that a socket is open and that you can connect to it."""
+        pass
+
+    def setup_controller(self):
+        """Create Controller object and call setup_controller."""
+        self.controller = Controller()
+        self.controller.establish_connection()
+        assert self.controller.connection is not None
+
+    def teardown_method(self, _):
+        """Tear down called after every test_XXXX method."""
+        self.controller = None
+
+        # Kill all the sources
+        if self.sources is not None:
+            self.sources.terminate_video()
+            self.sources.terminate_audio()
+        self.sources = None
+
+        if self.serv is not None:
+            # Kill the server
+            self.serv.terminate(1)
+
+            if self.serv.proc:
+                poll = self.serv.proc.poll()
                 if poll == -11:
                     print("SEGMENTATION FAULT OCCURRED")
-                print("ERROR CODE - {0}".format(poll))
-                serv.terminate(1)
-                log = open('server.log')
-                print(log.read())
+                if poll != 0:
+                    print("ERROR CODE - {0}".format(poll))
+            log = open('server.log')
+            print(log.read())
+
+        self.serv = None
 
 
-class TestGetComposePort(object):
+class TestEstablishConnection(IntegrationTestbase):
+    """Test setup_controller method"""
 
-    """Test get_compose_port method"""
-    NUM = 1
-    FACTOR = 1
+    def test_establish(self):
+        """Test for setup_controller"""
+        self.setup_server()
+        self.setup_controller()
 
-    def get_compose_port(self):
-        """Create Controller and call get_compose_port method"""
-        res = []
-        controller = Controller()
-        controller.establish_connection()
-        for _ in range(self.NUM * self.FACTOR):
-            res.append(controller.get_compose_port())
-        return res
 
-    def test_compose_ports(self):
+class TestGetPorts(IntegrationTestbase):
+    """Test get_xxxx_port methods"""
+
+    def test_compose_port(self):
         """Test get_compose_port"""
-        res = []
-        expected_result = []
-        for i in range(self.NUM):
-            video_port = (i + 7) * 1000
-            expected_result.append([video_port + 1] * self.NUM * self.FACTOR)
-            serv = Server(path=PATH, video_port=video_port)
-            try:
-                serv.run()
-                sources = TestSources(video_port=video_port)
-                sources.new_test_video()
-                sources.new_test_video()
+        self.setup_server()
+        self.setup_controller()
+        assert self.controller.get_compose_port() == 3001
 
-                res.append(self.get_compose_port())
-                sources.terminate_video()
-                serv.terminate(1)
-            finally:
-                if serv.proc:
-                    poll = serv.proc.poll()
-                    print(self.__class__)
-                    if poll == -11:
-                        print("SEGMENTATION FAULT OCCURRED")
-                    print("ERROR CODE - {0}".format(poll))
-                    serv.terminate(1)
-                    log = open('server.log')
-                    print(log.read())
-
-        set_expected = [tuple(i) for i in expected_result]
-        set_res = [tuple(i) for i in res]
-        assert set(set_expected) == set(set_res)
-
-
-class TestGetEncodePort(object):
-
-    """Test get_encode_port method"""
-    NUM = 1
-    FACTOR = 1
-
-    def get_encode_port(self):
-        """Create a Controller object and call get_encode_port method"""
-        res = []
-        controller = Controller()
-        controller.establish_connection()
-        for _ in range(self.NUM * self.FACTOR):
-            res.append(controller.get_encode_port())
-        return res
-
-    def test_encode_ports(self):
+    def test_encode_port(self):
         """Test get_encode_port"""
-        res = []
-        expected_result = []
-        for i in range(self.NUM):
-            video_port = (i + 8) * 1000
-            expected_result.append([video_port + 2] * self.NUM * self.FACTOR)
-            serv = Server(path=PATH, video_port=video_port)
-            try:
-                serv.run()
-                sources = TestSources(video_port=video_port)
-                sources.new_test_video()
-                sources.new_test_video()
+        self.setup_server()
+        self.setup_controller()
+        assert self.controller.get_encode_port() == 3002
 
-                res.append(self.get_encode_port())
-                sources.terminate_video()
-                serv.terminate(1)
-            finally:
-                if serv.proc:
-                    poll = serv.proc.poll()
-                    print(self.__class__)
-                    if poll == -11:
-                        print("SEGMENTATION FAULT OCCURRED")
-                    print("ERROR CODE - {0}".format(poll))
-                    serv.terminate(1)
-                    log = open('server.log')
-                    print(log.read())
+    def test_audio_port(self):
+        """Test get_encode_port"""
+        self.setup_server()
+        self.setup_controller()
+        assert self.controller.get_encode_port() == 3002
 
-        set_expected = [tuple(i) for i in expected_result]
-        set_res = [tuple(i) for i in res]
-        assert set(set_expected) == set(set_res)
+    def test_preview_ports(self):
+        """Test get_compose_port"""
+        self.setup_server()
+        self.setup_controller()
 
+        # Server with no sources should have no compose ports.
+        assert self.controller.get_preview_ports() == []
 
-class TestGetAudioPort(object):
+        # Add a test video
+        self.sources.new_test_video()
+        assert self.controller.get_preview_ports() == [3003]
 
-    """Test get_audio_port method"""
-    NUM = 1
-    FACTOR = 1
+        # Add a second test video
+        self.sources.new_test_video()
+        assert self.controller.get_preview_ports() == [3003, 3004]
 
-    def get_audio_port(self):
-        """Create Controller object and call get_audio_port method"""
-        res = []
-        controller = Controller()
-        controller.establish_connection()
-        for _ in range(self.NUM * self.FACTOR):
-            res.append(controller.get_audio_port())
-        return res
+        # Add a third source, this time audio
+        self.sources.new_test_audio()
+        assert self.controller.get_preview_ports() == [3003, 3004, 3005]
 
-    def test_audio_ports(self):
-        """Test get_audio_port"""
-        res = []
-        expected_result = []
-        for i in range(1, self.NUM + 1):
-            audio_port = (i + 10) * 1000
-            expected_result.append([3003] * self.NUM * self.FACTOR)
-            serv = Server(path=PATH, video_port=3000, audio_port=audio_port)
-            try:
-                serv.run()
-                sources = TestSources(video_port=3000, audio_port=audio_port)
-                sources.new_test_audio()
+        # Kill the video sources
+        self.sources.terminate_video()
+        time.sleep(5)
+        assert self.controller.get_preview_ports() == [3005]
 
-                res.append(self.get_audio_port())
-
-                sources.terminate_audio()
-                serv.terminate(1)
-
-            finally:
-                if serv.proc:
-                    poll = serv.proc.poll()
-                    print(self.__class__)
-                    if poll == -11:
-                        print("SEGMENTATION FAULT OCCURRED")
-                    print("ERROR CODE - {0}".format(poll))
-                    serv.terminate(1)
-                    log = open('server.log')
-                    print(log.read())
-        # print(res)
-        # print(expected_result)
-        set_expected = [tuple(i) for i in expected_result]
-        set_res = [tuple(i) for i in res]
-        assert set(set_expected) == set(set_res)
-
-
-class TestGetPreviewPorts(object):
-
-    """Test get_preview_ports method"""
-    NUM = 1
-    FACTOR = 1
-
-    def get_preview_ports(self):
-        """Create Controller object and call get_preview_ports method"""
-        res = []
-        controller = Controller()
-        controller.establish_connection()
-        for _ in range(self.NUM * self.FACTOR):
-            res.append(controller.get_preview_ports())
-        return res
-
-    def test_get_preview_ports(self):
-        """Test get_preview_ports"""
-
-        for _ in range(self.NUM):
-            serv = Server(path=PATH, video_format="debug")
-            try:
-                serv.run()
-                sources = TestSources(video_port=3000, audio_port=4000)
-                for _ in range(self.NUM):
-                    sources.new_test_audio()
-                    sources.new_test_video()
-                expected_result = map(
-                    tuple,
-                    [[x for x in range(3003, 3004 + self.NUM)]]
-                    * self.NUM * self.FACTOR)
-                res = map(tuple, self.get_preview_ports())
-                print('\n', res, '\n')
-                print(expected_result)
-                assert set(expected_result) == set(res)
-                sources.terminate_video()
-                sources.terminate_audio()
-                serv.terminate(1)
-            finally:
-                if serv.proc:
-                    poll = serv.proc.poll()
-                    print(self.__class__)
-                    if poll == -11:
-                        print("SEGMENTATION FAULT OCCURRED")
-                    print("ERROR CODE - {0}".format(poll))
-                    serv.terminate(1)
-                    log = open('server.log')
-                    print(log.read())
+        # Add a video source back
+        self.sources.new_test_video()
+        assert self.controller.get_preview_ports() == [3003, 3005]
 
 
 class VideoFileSink(object):

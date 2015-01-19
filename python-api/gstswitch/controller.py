@@ -158,7 +158,7 @@ class Controller(object):
         self.connection.connect_dbus()
 
     def get_compose_port(self):
-        """Get the compose port number
+        """Get the port number to receive raw composited video from.
 
         :param: None
         :returns: compose port number
@@ -172,7 +172,7 @@ class Controller(object):
                                         'Should return a GVariant tuple')
 
     def get_encode_port(self):
-        """Get the encode port number
+        """Get the port number to receive encoded video from.
 
         :param: None
         :returns: encode port number
@@ -186,7 +186,7 @@ class Controller(object):
                                         ' Should return a GVariant tuple')
 
     def get_audio_port(self):
-        """Get the audio port number
+        """Get the port number to receive audio data stream from.
 
         :param: None
         :returns: audio port number
@@ -200,7 +200,7 @@ class Controller(object):
                                         'Should return a GVariant tuple')
 
     def get_preview_ports(self):
-        """Get all the preview ports
+        """Get all the port numbers of the preview streams from.
 
         :param: None
         :returns: list of all preview ports
