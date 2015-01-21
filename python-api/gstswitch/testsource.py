@@ -25,23 +25,23 @@ class BasePipeline(Gst.Pipeline):
     """A Basic pipeline
     """
 
+    @property
+    def _playing(self):
+        return self.status() == Gst.STATE_PLAYING
+
     def __init__(self):
         Gst.Pipeline.__init__(self)
-        self._playing = False
 
     def play(self):
         """Set the pipeline as playing"""
-        self._playing = True
         self.set_state(Gst.State.PLAYING)
 
     def pause(self):
         """Pause the pipeline"""
-        self._playing = False
         self.set_state(Gst.State.PAUSED)
 
     def disable(self):
         """Disable the pipeline"""
-        self._playing = False
         self.set_state(Gst.State.NULL)
 
     @classmethod
@@ -53,6 +53,9 @@ class BasePipeline(Gst.Pipeline):
         """
         element = Gst.ElementFactory.make(elem, description)
         return element
+
+    def status(self):
+        return self.pipeline.get_state()[1]
 
 
 class VideoPipeline(BasePipeline):
@@ -483,6 +486,9 @@ class VideoSrc(object):
         """End/disable the pipeline"""
         self.pipeline.disable()
 
+    def status(self):
+        return self.pipeline.status()
+
     @classmethod
     def generate_pattern(cls, pattern):
         """Generate a random pattern if not specified
@@ -606,6 +612,9 @@ class AudioSrc(object):
         """End/disable the pipeline"""
         self.pipeline.disable()
 
+    def status(self):
+        return self.pipeline.status()
+
     @classmethod
     def generate_wave(cls, wave):
         """Generate a random wave if not specified
@@ -669,3 +678,6 @@ class Preview(object):
     def end(self):
         """End/disable the pipeline"""
         self.pipeline.disable()
+
+    def status(self):
+        return self.pipeline.status()

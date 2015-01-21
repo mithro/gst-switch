@@ -34,6 +34,9 @@ class TestSources(object):
         if audio_port:
             self.audio_port = audio_port
 
+    def running(self):
+        return [s.status() for s in self._running_tests_videos + self._running_tests_audio]
+
     @property
     def video_port(self):
         """Get the video port"""
