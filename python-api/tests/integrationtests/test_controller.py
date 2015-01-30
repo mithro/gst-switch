@@ -107,6 +107,7 @@ class TestGetPorts(IntegrationTestbase):
         self.setup_controller()
         assert self.controller.get_encode_port() == 3002
 
+    @pytest.mark.xfail
     def test_preview_ports(self):
         """Test get_compose_port"""
         self.setup_server()
