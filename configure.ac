@@ -214,7 +214,13 @@ Makefile
 plugins/Makefile
 tests/Makefile
 tests/unit/Makefile
+tools/capture/Makefile
+tools/common-ui/Makefile
 tools/Makefile
+tools/ptz/Makefile
+tools/server/Makefile
+tools/support/Makefile
+tools/ui/Makefile
 )
 
 AC_OUTPUT
