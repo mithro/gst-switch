@@ -16,8 +16,6 @@
 .gdb_history
 .idea
 /INSTALL
-/Makefile
-/Makefile.in
 /aclocal.m4
 /autom4te.cache/
 /autoregen.sh
@@ -48,8 +46,6 @@
 /missing
 /plugins/.deps/
 /plugins/.libs/
-/plugins/Makefile
-/plugins/Makefile.in
 /python-api/.cache/
 /python-api/htmlcov/
 /python-api/imgurbash.sh*
@@ -62,13 +58,13 @@
 /tests/test-switch-server-valgrind.log
 /timestamped*
 /tools/.deps/
-/tools/Makefile
-/tools/Makefile.in
 /tools/gst-switch-cap
 /tools/gst-switch-ptz
 /tools/gst-switch-srv
 /tools/gst-switch-ui
 /tools/gstworker.plist
 /transition-strips
+Makefile
+Makefile.in
 imgurbash.sh.*
 test-driver
