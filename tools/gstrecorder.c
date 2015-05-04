@@ -280,36 +280,52 @@ gst_recorder_get_pipeline_string (GstRecorder * rec)
       gst_recorder_new_filename (gst_switch_server_get_record_filename ());
   GString *desc;
 
-  //INFO ("Recording to %s and port %d", filename, rec->sink_port);
-
   desc = g_string_new ("");
 
   // Encode the video with lossless jpeg
   g_string_append_printf (desc,
-      "intervideosrc name=source_video channel=composite_video "
-      "! video/x-raw,width=%d,height=%d "
-      "! queue ! jpegenc quality=100 ! mux. \n", rec->width, rec->height);
+      "intervideosrc channel=composite_video "
+      "! %s "
+      "! queue "
+      "! jpegenc quality=100 "
+      "! mux. "
+      "\n",
+      gst_switch_server_get_video_caps_str());
 
   // Don't encode the audio
   g_string_append_printf (desc,
-      "interaudiosrc name=source_audio channel=composite_audio ! queue ! mux. \n");
+      "interaudiosrc channel=composite_audio "
+      "! audioparse raw-format=s16le rate=48000 "
+      "! %s "
+      "! queue "
+      "! mux. "
+      "\n",
+      gst_switch_server_get_audio_caps_str());
 
   // Output in streamable mkv format
   g_string_append_printf (desc,
       "matroskamux name=mux streamable=true "
-      " writing-app='gst-switch' min-index-interval=1000000 ");
-
-  g_string_append_printf (desc, "! tee name=result ");
-  g_string_append_printf (desc, "\n");
+      " writing-app='gst-switch' min-index-interval=1000000 "
+      "! tee name=result "
+      "\n");
 
   if (filename) {
-    g_string_append_printf (desc, "result. ! queue max-size-buffers=1 "
-        "! filesink name=disk_sink sync=false location=\"%s\" ", filename);
+    g_string_append_printf (desc, 
+        "result. "
+        "! queue max-size-buffers=1 "
+        "! filesink name=disk_sink sync=false location=\"%s\" "
+        "\n",
+        filename);
     g_free ((gpointer) filename);
   }
 
-  g_string_append_printf (desc, "result. ! queue max-size-buffers=1 ! gdppay "
-      "! tcpserversink name=tcp_sink sync=false port=%d ", rec->sink_port);
+  g_string_append_printf (desc, 
+      "result. "
+      "! queue max-size-buffers=1 "
+      "! gdppay "
+      "! tcpserversink name=tcp_sink sync=false port=%d "
+      "\n",
+      rec->sink_port);
 
   INFO ("Recording pipeline\n----\n%s\n---", desc->str);
 

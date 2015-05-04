@@ -28,6 +28,17 @@ mode_to_string (void)
       "COMPOSE_MODE_NONE");
 }
 
+/*
+static void
+get_scaled_video_caps_str (void)
+{
+  
+  GString *str = gst_composite_get_scaled_video_caps_str(123, 456);
+  g_assert (desc != NULL && strlen (desc->str) > 0);
+  g_assert_cmpstr("", ==, desc->str);
+}
+*/
+
 int
 main (int argc, char **argv)
 {
@@ -35,5 +46,7 @@ main (int argc, char **argv)
   g_test_set_nonfatal_assertions ();
   g_test_add_func ("/gstswitch/server/composite/mode_to_string",
       mode_to_string);
+  g_test_add_func ("/gstswitch/server/composite/get_scaled_video_caps_str",
+      get_scaled_video_caps_str);
   return g_test_run ();
 }

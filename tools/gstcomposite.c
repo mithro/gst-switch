@@ -150,68 +150,61 @@ gst_composite_set_mode (GstComposite * composite, GstCompositeMode mode)
     return;
   }
 
-  composite->width = gst_composite_default_width ();
-  composite->height = gst_composite_default_height ();
+  gint default_width = gst_composite_default_width();
+  gint default_height = gst_composite_default_height();
 
   switch ((composite->mode = mode)) {
     case COMPOSE_MODE_NONE:
       composite->a_x = 0;
       composite->a_y = 0;
-      composite->a_width = composite->width;
-      composite->a_height = composite->height;
+      composite->a_width = default_width;
+      composite->a_height = default_height;
       composite->b_x = 0;
       composite->b_y = 0;
       composite->b_width = 0;
       composite->b_height = 0;
-      composite->width = composite->a_width;
-      composite->height = composite->a_height;
       break;
     case COMPOSE_MODE_PIP:
       composite->a_x = 0;
       composite->a_y = 0;
-      composite->a_width = composite->width;
-      composite->a_height = composite->height;
+      composite->a_width = default_width;
+      composite->a_height = default_height;
       composite->b_x = (guint) ((double) composite->a_width * 0.08 + 0.5);
       composite->b_y = (guint) ((double) composite->a_height * 0.08 + 0.5);
       composite->b_width = (guint) ((double) composite->a_width * 0.3 + 0.5);
       composite->b_height = (guint) ((double) composite->a_height * 0.3 + 0.5);
-      composite->width = composite->a_width;
-      composite->height = composite->a_height;
       break;
     case COMPOSE_MODE_DUAL_PREVIEW:
       composite->a_x = 0;
       composite->a_y = 0;
-      composite->a_width = (guint) ((double) composite->width * 0.7 + 0.5);
-      composite->a_height = (guint) ((double) composite->height * 0.7 + 0.5);
+      composite->a_width = (guint) ((double) default_width * 0.7 + 0.5);
+      composite->a_height = (guint) ((double) default_height * 0.7 + 0.5);
       composite->b_x = composite->a_width + 1;
       composite->b_y = composite->a_y;
       composite->b_width =
-          composite->width - composite->a_x - composite->a_width;
+          default_width - composite->a_x - composite->a_width;
       composite->b_height =
-          composite->height - composite->a_y - composite->a_height;
+          default_height - composite->a_y - composite->a_height;
       break;
     case COMPOSE_MODE_DUAL_EQUAL:
-      composite->a_width = (guint) ((double) composite->width * 0.5 + 0.5);
-      composite->a_height = (guint) ((double) composite->height * 0.5 + 0.5);
+      composite->a_width = (guint) ((double) default_width * 0.5 + 0.5);
+      composite->a_height = (guint) ((double) default_height * 0.5 + 0.5);
       composite->a_x = 0;
-      composite->a_y = (composite->height - composite->a_height) / 2;
+      composite->a_y = (default_height - composite->a_height) / 2;
       composite->b_x = composite->a_width + 1;
       composite->b_y = composite->a_y;
       composite->b_width =
-          composite->width - composite->a_x - composite->a_width;
+          default_width - composite->a_x - composite->a_width;
       composite->b_height = composite->a_height;
       break;
     default:
       break;
   }
 
-  /*
-     INFO ("new mode %d, %dx%d (%dx%d, %dx%d)", mode,
-     composite->width, composite->height,
+  INFO ("new mode %d, %dx%d (%dx%d, %dx%d)", mode,
+     default_width, default_height,
      composite->a_width, composite->a_height,
      composite->b_width, composite->b_height);
-   */
-
   gst_composite_start_transition (composite);
 }
 
@@ -245,7 +238,7 @@ gst_composite_start_transition (GstComposite * composite)
     composite->transition = gst_worker_stop (GST_WORKER (composite));
     /*
        INFO ("transtion ok=%d, %d, %dx%d", composite->transition,
-       composite->mode, composite->width, composite->height);
+       composite->mode, default_width, default_height);
      */
   }
 
@@ -356,17 +349,29 @@ gst_composite_get_property (GstComposite * composite, guint property_id,
     case PROP_B_HEIGHT:
       g_value_set_uint (value, composite->b_height);
       break;
-    case PROP_WIDTH:
-      g_value_set_uint (value, composite->width);
-      break;
-    case PROP_HEIGHT:
-      g_value_set_uint (value, composite->height);
-      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (G_OBJECT (composite), property_id,
           pspec);
       break;
   }
+}
+
+/* gst_switch_server_get_scaled_video_caps_str
+ * return video caps as a string
+ */
+gchar *
+gst_composite_get_scaled_video_caps_str (guint width, guint height)
+{
+  const GstCaps *caps = gst_switch_server_getcaps ();
+
+  GstCaps *caps_copy = gst_caps_copy(caps); 
+  gst_caps_set_simple (caps_copy,
+      "width", G_TYPE_INT, width,
+      "height", G_TYPE_INT, height,
+      NULL);
+  gchar * caps_str = gst_caps_to_string(caps_copy);
+  gst_caps_unref(caps_copy);
+  return caps_str;
 }
 
 /**
@@ -387,22 +392,6 @@ gst_composite_apply_parameters (GstComposite * composite)
   if (!worker_class->reset (GST_WORKER (composite))) {
     ERROR ("failed to reset composite");
   }
-  /*
-     if (!worker_class->reset (GST_WORKER (composite->output))) {
-     ERROR ("failed to reset composite output");
-     }
-   */
-
-  /*
-     g_object_set (composite->recorder,
-     "port", composite->encode_sink_port,
-     "mode", composite->mode, "width", composite->width,
-     "height", composite->height, NULL);
-
-     if (!worker_class->reset (GST_WORKER (composite->recorder))) {
-     ERROR ("failed to reset composite recorder");
-     }
-   */
 }
 
 /**
@@ -418,20 +407,42 @@ gst_composite_get_pipeline_string (GstComposite * composite)
 
   desc = g_string_new ("");
 
-  g_string_append_printf (desc,
-      "intervideosrc name=source_a channel=composite_a_scaled ");
   if (composite->mode == COMPOSE_MODE_NONE) {
     g_string_append_printf (desc,
-        "source_a. ! video/x-raw,width=%d,height=%d ",
-        composite->a_width, composite->a_height);
-    /*
-       ASSESS ("assess-compose-a-source");
-     */
-    g_string_append_printf (desc, "! queue ");
-    g_string_append_printf (desc, "! identity name=mix ");
+        "intervideosrc channel=composite_a_scaled "
+        "! %s "
+        "! queue "
+        "! identity name=mix "
+        "\n",
+        gst_switch_server_get_video_caps_str());
+
   } else {
-    g_string_append_printf (desc,
-        "intervideosrc name=source_b channel=composite_b_scaled ");
+    // ===== A =====
+    {
+      gchar *a_caps_scaled = gst_composite_get_scaled_video_caps_str(composite->a_width, composite->a_height);
+      g_string_append_printf (desc,
+          "intervideosrc channel=composite_a_scaled "
+          "! %s "
+          "! queue "
+          "! mix.sink_0 "
+          "\n",
+          a_caps_scaled);
+       g_free(a_caps_scaled);
+    }
+
+    // ===== B =====
+    {
+      gchar *b_caps_scaled = gst_composite_get_scaled_video_caps_str(composite->b_width, composite->b_height);
+      g_string_append_printf (desc,
+          "intervideosrc channel=composite_b_scaled "
+          "! %s "
+          "! queue "
+          "! mix.sink_1 "
+          "\n",
+          b_caps_scaled);
+       g_free(b_caps_scaled);
+    }
+
     g_string_append_printf (desc,
         "videomixer name=mix "
         "sink_0::xpos=%d "
@@ -439,71 +450,34 @@ gst_composite_get_pipeline_string (GstComposite * composite)
         "sink_0::zorder=0 "
         "sink_1::xpos=%d "
         "sink_1::ypos=%d "
-        "sink_1::zorder=1 ",
+        "sink_1::zorder=1 "
+        "\n",
         composite->a_x, composite->a_y, composite->b_x, composite->b_y);
-
-    // ===== B =====
-    g_string_append_printf (desc,
-        "source_b. ! video/x-raw,width=%d,height=%d ",
-        composite->b_width, composite->b_height);
-    ASSESS ("assess-compose-b-source");
-    g_string_append_printf (desc, "! queue ");
-#if 0
-    if (composite->width != composite->b_width ||
-        composite->height != composite->b_height) {
-      g_string_append_printf (desc,
-          "! videoscale ! video/x-raw,width=%d,height=%d ",
-          composite->b_width, composite->b_height);
-      /*
-         ASSESS ("assess-compose-b-scaled");
-       */
-    }
-#endif
-    g_string_append_printf (desc, "! mix.sink_1 ");
-
-    // ===== A =====
-    g_string_append_printf (desc,
-        "source_a. ! video/x-raw,width=%d,height=%d ",
-        composite->a_width, composite->a_height);
-    ASSESS ("assess-compose-a-source");
-    g_string_append_printf (desc, "! queue ");
-#if 0
-    if (composite->width != composite->a_width ||
-        composite->height != composite->a_height) {
-      g_string_append_printf (desc,
-          "! videoscale ! video/x-raw,width=%d,height=%d ",
-          composite->a_width, composite->a_height);
-      /*
-         ASSESS ("assess-compose-b-scaled");
-       */
-    }
-#endif
-    g_string_append_printf (desc, "! mix.sink_0 ");
   }
 
-  g_string_append_printf (desc, "mix. ! video/x-raw,width=%d,height=%d ",
-      composite->width, composite->height);
-  ASSESS ("assess-compose-result");
-  g_string_append_printf (desc, "! tee name=result ");
+  // TODO: This see seems totally unneeded...
+  g_string_append_printf (desc, 
+      "mix. "
+      "! %s "
+      "! tee name=result "
+      "\n",
+      gst_switch_server_get_video_caps_str());
 
-  g_string_append_printf (desc, "result. ! queue ");
-  /*
-     ASSESS ("assess-compose-to-output");
-   */
-  g_string_append_printf (desc, "! out. ");
-  g_string_append_printf (desc,
-      "intervideosink name=out channel=composite_out ");
+  g_string_append_printf (desc, 
+      "result. "
+      "! queue "
+      "! intervideosink channel=composite_out "
+      "\n");
 
   if (opts.record_filename) {
-    g_string_append_printf (desc, "result. ! queue ");
-    /*
-       ASSESS ("assess-compose-to-record");
-     */
-    g_string_append_printf (desc, "! record. ");
-    g_string_append_printf (desc, "intervideosink name=record "
-        "channel=composite_video ");
+    g_string_append_printf (desc, 
+      "result. "
+      "! queue "
+      "! intervideosink channel=composite_video "
+      "\n");
   }
 
+  INFO ("Mixing pipeline\n----\n%s---", desc->str);
   return desc;
 }
 
@@ -522,43 +496,37 @@ gst_composite_get_scaler_string (GstWorker * worker, GstComposite * composite)
   GString *desc;
 
   desc = g_string_new ("");
-
-  g_string_append_printf (desc,
-      "intervideosrc name=source_a channel=composite_a ");
-  g_string_append_printf (desc,
-      "intervideosink name=sink_a sync=false channel=composite_a_scaled ");
-
-  g_string_append_printf (desc,
-      "source_a. ! video/x-raw,width=%d,height=%d ",
-      composite->width, composite->height);
-  g_string_append_printf (desc, "! queue ");
-  /*
-     g_string_append_printf (desc,
-     "! videoconvert ! facedetect2 ! speakertrack ! videoconvert ");
-   */
-  g_string_append_printf (desc,
-      "! videoscale ! video/x-raw,width=%d,height=%d ! sink_a. ",
-      composite->a_width, composite->a_height);
-
-  if (composite->mode == COMPOSE_MODE_NONE) {
-  } else {
+  {
+    gchar *a_caps_scaled = gst_composite_get_scaled_video_caps_str(composite->a_width, composite->a_height);
     g_string_append_printf (desc,
-        "intervideosrc name=source_b channel=composite_b ");
-    g_string_append_printf (desc,
-        "intervideosink name=sink_b sync=false channel=composite_b_scaled ");
-
-    g_string_append_printf (desc,
-        "source_b. ! video/x-raw,width=%d,height=%d ",
-        composite->width, composite->height);
-    g_string_append_printf (desc, "! queue ");
-    /*
-       g_string_append_printf (desc,
-       "! videoconvert ! facedetect2 ! speakertrack ! videoconvert ");
-     */
-    g_string_append_printf (desc,
-        "! videoscale ! video/x-raw,width=%d,height=%d ! sink_b. ",
-        composite->b_width, composite->b_height);
+        "intervideosrc channel=composite_a "
+        "! %s "
+        "! queue "
+        "! videoscale "
+        "! %s "
+        "! intervideosink sync=false channel=composite_a_scaled "
+        "\n",
+        gst_switch_server_get_video_caps_str(),
+        a_caps_scaled
+        );
+    g_free(a_caps_scaled);
   }
+
+  if (composite->mode != COMPOSE_MODE_NONE) {
+    gchar *b_caps_scaled = gst_composite_get_scaled_video_caps_str(composite->b_width, composite->b_height);
+    g_string_append_printf (desc,
+        "intervideosrc channel=composite_b "
+        "! %s "
+        "! queue "
+        "! videoscale "
+        "! %s "
+        "! intervideosink sync=false channel=composite_b_scaled "
+        "\n",
+        gst_switch_server_get_video_caps_str(),
+        b_caps_scaled);
+    g_free(b_caps_scaled);
+  }
+  INFO ("Scaling pipeline\n----\n%s\n---", desc->str);
   return desc;
 }
 
@@ -633,7 +601,7 @@ gst_composite_end_transition (GstComposite * composite)
     if (composite->transition) {
       /*
          INFO ("new mode %d, %dx%d transited", composite->mode,
-         composite->width, composite->height);
+         default_width, default_height);
        */
       INFO ("ending transition");
       composite->transition = FALSE;
@@ -664,7 +632,7 @@ gst_composite_commit_transition (GstComposite * composite)
     if (composite->transition) {
       /*
          INFO ("new mode %d, %dx%d applying...",
-         composite->mode, composite->width, composite->height);
+         composite->mode, default_width, default_height);
        */
       gst_composite_apply_parameters (composite);
     }
@@ -825,7 +793,7 @@ gst_composite_get_caps_int_value (const gchar * fieldname)
 static gint cached_default_width = -1;
 static gint cached_default_height = -1;
 
-/* gst_composite_defaut_width:
+/* gst_composite_default_width:
  *
  *  @return default width based on current video caps 
  */
@@ -837,7 +805,7 @@ gst_composite_default_width ()
   return cached_default_width;
 }
 
-/* gst_composite_defaut_height:
+/* gst_composite_default_height:
  *
  *  @return default height based on current video caps 
  */
@@ -978,8 +946,8 @@ gst_composite_retry_transition (GstComposite * composite)
   if (composite->transition) {
     GST_COMPOSITE_LOCK_TRANSITION (composite);
     if (composite->transition) {
-      WARN ("new mode %d, %dx%d (error transition)",
-          composite->mode, composite->width, composite->height);
+      WARN ("new mode %d (error transition)",
+          composite->mode);
       gst_composite_apply_parameters (composite);
       gst_worker_start (GST_WORKER (composite));
     }

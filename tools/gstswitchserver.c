@@ -686,22 +686,16 @@ gst_switch_server_serve (GstSwitchServer * srv, GSocket * client,
 
   if (serve_type == GST_SERVE_VIDEO_STREAM) {
     g_object_set (input,
-        "width", srv->composite->width,
-        "height", srv->composite->height,
         "awidth", srv->composite->a_width,
         "aheight", srv->composite->a_height,
         "bwidth", srv->composite->b_width,
         "bheight", srv->composite->b_height, NULL);
     g_object_set (branch,
-        "width", srv->composite->width,
-        "height", srv->composite->height,
         "awidth", srv->composite->a_width,
         "aheight", srv->composite->a_height,
         "bwidth", srv->composite->b_width,
         "bheight", srv->composite->b_height, NULL);
     g_object_set (workcase,
-        "width", srv->composite->width,
-        "height", srv->composite->height,
         "awidth", srv->composite->a_width,
         "aheight", srv->composite->a_height,
         "bwidth", srv->composite->b_width,
@@ -1142,8 +1136,7 @@ gst_switch_server_new_record (GstSwitchServer * srv)
       g_object_set (G_OBJECT (srv->recorder),
           "mode", srv->composite->mode,
           "port", srv->composite->encode_sink_port,
-          "width", srv->composite->width,
-          "height", srv->composite->height, NULL);
+          NULL);
       worker_class = GST_WORKER_CLASS (G_OBJECT_GET_CLASS (srv->recorder));
       if (worker_class->reset (GST_WORKER (srv->recorder))) {
         result = gst_worker_start (GST_WORKER (srv->recorder));
@@ -1644,18 +1637,14 @@ gst_switch_server_get_output_string (GstWorker * worker, GstSwitchServer * srv)
 
   desc = g_string_new ("");
 
-  g_string_append_printf (desc, "intervideosrc name=source "
-      "channel=composite_out ");
-  g_string_append_printf (desc, "tcpserversink name=sink "
-      "port=%d ", srv->composite->sink_port);
-  g_string_append_printf (desc, "source. ! video/x-raw,width=%d,height=%d ",
-      srv->composite->width, srv->composite->height);
-  ASSESS ("assess-output");
-  g_string_append_printf (desc, "! gdppay ");
-  /*
-     ASSESS ("assess-output-payed");
-   */
-  g_string_append_printf (desc, "! sink. ");
+  g_string_append_printf (desc, 
+      "intervideosrc channel=composite_out "
+      "! %s "
+      "! gdppay "
+      "! tcpserversink port=%d "
+      "\n",
+      gst_switch_server_get_video_caps_str(),
+      srv->composite->sink_port);
 
   return desc;
 }

@@ -143,7 +143,6 @@ class TestAdjustPIP(IntegrationTestbaseVideo):
 class TestCompositeOutput(IntegrationTestbaseVideo):
     """ Test the actual Output of the Composition-Port
     """
-    @pytest.mark.xfail(reason="issue #200")
     def test_caps(self):
         """ Test if the compose-port is sending a video-stream with the
         expected caps

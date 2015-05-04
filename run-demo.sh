@@ -7,6 +7,7 @@ AUDIO_CAPS="audio/x-raw, rate=48000, channels=2, format=S16LE, layout=interleave
 
 killall gst-switch-srv || true
 sleep 2
+#GST_DEBUG=*:4 ./tools/gst-switch-srv -f "$VIDEO_CAPS" -r &
 ./tools/gst-switch-srv -f "$VIDEO_CAPS" -r &
 sleep 2
 ./tools/gst-switch-ui &

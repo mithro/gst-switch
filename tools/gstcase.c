@@ -319,7 +319,7 @@ gst_case_get_pipeline_string (GstCase * cas)
 
     case GST_CASE_COMPOSITE_AUDIO:
       g_string_append_printf (desc,
-          "interaudiosrc name=source channel=input_%d ! %s ! audioparse raw-format=s16le rate=48000 ! tee name=s "
+          "interaudiosrc name=source channel=input_%d ! audioparse raw-format=s16le rate=48000 ! %s ! tee name=s "
           "s. ! queue ! interaudiosink name=sink1 channel=branch_%d "
           "s. ! queue ! interaudiosink name=sink2 channel=composite_audio",
           cas->sink_port, caps, cas->sink_port);
